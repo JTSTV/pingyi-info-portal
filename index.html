@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>平邑信息港</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: sans-serif; background: #f4f6f9; color: #333; padding: 15px; }
+        header { background: #e74c3c; color: white; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 15px; }
+        .card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        input, textarea, select { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        button { width: 100%; padding: 12px; background: #e74c3c; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
+        .vip-tip { background: #fff3cd; padding: 10px; border-radius: 5px; text-align: center; font-size: 14px; margin-bottom: 15px; }
+        .post-item { padding: 10px 0; border-bottom: 1px dashed #eee; }
+    </style>
+</head>
+<body>
+    <header><h1>📍 平邑信息港</h1></header>
+
+    <!-- 发布表单 -->
+    <div class="card">
+        <h3 style="margin-bottom:10px;">✍️ 免费发布信息</h3>
+        <select id="category">
+            <option value="房屋出租">房屋出租</option>
+            <option value="招聘求职">招聘求职</option>
+            <option value="同城交友">同城交友</option>
+        </select>
+        <input type="text" id="title" placeholder="请输入标题">
+        <textarea id="content" rows="3" placeholder="请输入详细内容"></textarea>
+        <button onclick="submitPost()">立即发布</button>
+    </div>
+
+    <!-- 黄金会员提示 -->
+    <div class="vip-tip">
+        💎 想要信息长期置顶、排名靠前？ 升级为【黄金会员】请联系网管微信：<b>13181220603</b>
+    </div>
+
+    <!-- 信息展示区 -->
+    <div class="card">
+        <h3 style="margin-bottom:10px;">📢 最新信息</h3>
+        <div id="post-list">加载中...</div>
+    </div>
+
+    <script>
+        // 1. 提交信息的逻辑
+        async function submitPost() {
+            const title = document.getElementById('title').value;
+            const content = document.getElementById('content').value;
+            const category = document.getElementById('category').value;
+            if(!title || !content) { alert("标题和内容不能为空！"); return; }
+
+            const res = await fetch('/api/posts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, content, category })
+            });
+            const data = await res.json();
+            alert(data.message);
+            loadPosts(); // 发布后刷新列表
+        }
+
+        // 2. 加载信息的逻辑
+        async function loadPosts() {
+            const res = await fetch('/api/posts');
+            const posts = await res.json();
+            const listDiv = document.getElementById('post-list');
+            if(posts.length === 0) { listDiv.innerHTML = "暂无信息，快来发布第一条吧！"; return; }
+            
+            listDiv.innerHTML = posts.map(p => `
+                <div class="post-item">
+                    <strong>[${p.category}] ${p.title}</strong> 
+                    <small>${p.content}</small>
+                </div>
+            `).join('');
+        }
+        loadPosts(); // 页面打开时自动加载
+    </script>
+</body>
+</html>
